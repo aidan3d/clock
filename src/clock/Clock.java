@@ -16,9 +16,14 @@ package clock;
  * from Kodicek and Flynt's <i>"Mathematics and Physics for Game
  * Programmers"</i> (2nd ed.) book.
  */
-public class Clock extends javax.swing.JFrame
-{
-
+public class Clock extends javax.swing.JFrame {
+    // create a global constant to hold the game's frame rate
+    private static final int DEFAULT_FPS = 60;
+    
+    // the maximum time between frame renders, sleep fills in the gap on very fast buffer flips
+    private static long period;
+    
+    
     /**
      * Creates new form Clock.
      */
@@ -36,18 +41,79 @@ public class Clock extends javax.swing.JFrame
     private void initComponents()
     {
 
+        face = new clock.ClockPanel(this, period*1000000L);
+        timeSpentTextField = new javax.swing.JTextField();
+        timeSpentLabel = new javax.swing.JLabel();
+        angularVelocityTextField = new javax.swing.JTextField();
+        jLabel1 = new javax.swing.JLabel();
+        angleSweptTextField = new javax.swing.JTextField();
+        angleSweptLabel = new javax.swing.JLabel();
+
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Clock");
+
+        face.setPreferredSize(new java.awt.Dimension(788, 575));
+
+        javax.swing.GroupLayout faceLayout = new javax.swing.GroupLayout(face);
+        face.setLayout(faceLayout);
+        faceLayout.setHorizontalGroup(
+            faceLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 0, Short.MAX_VALUE)
+        );
+        faceLayout.setVerticalGroup(
+            faceLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 546, Short.MAX_VALUE)
+        );
+
+        timeSpentTextField.setText("timeSpentTextField");
+
+        timeSpentLabel.setText("T I M E   (seconds)");
+
+        angularVelocityTextField.setText("angularVelocityTextField");
+
+        jLabel1.setText("=  A N G U L A R    V E L O C I T Y  (rads/second)");
+
+        angleSweptTextField.setText("angleSweptTextField");
+
+        angleSweptLabel.setText("*  A N G L E   (radians)");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(face, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(timeSpentTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 231, Short.MAX_VALUE)
+                            .addComponent(timeSpentLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(angleSweptTextField)
+                            .addComponent(angleSweptLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 277, Short.MAX_VALUE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, 256, Short.MAX_VALUE)
+                            .addComponent(angularVelocityTextField))))
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(face, javax.swing.GroupLayout.PREFERRED_SIZE, 546, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(timeSpentLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jLabel1)
+                    .addComponent(angleSweptLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(3, 3, 3)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(timeSpentTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(angularVelocityTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(angleSweptTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
         );
 
         pack();
@@ -57,6 +123,24 @@ public class Clock extends javax.swing.JFrame
      * @param args the command line arguments
      */
     public static void main(String args[]) {
+        
+        // Hold the global (class) variable's value in fpsso that we can change it if thee
+        // player has run <i>Clock</i> from the comand line with parameters
+        int fps = DEFAULT_FPS;
+        
+        
+        // for 60 frames-per-second, we have 1000/60 frames-per-millisecond! So instead of period being
+        // in seconds (1/fps) we have the period in units of ms (1000 * (1/fps)) at 60 frames-per-second
+        // we have 1000/60 milliseconds between updates (which is show as 16ms (rounded down from 16.667 ms)!
+        // nice to have an int to work with!))
+        period = (long)1000/fps;
+        
+        // display the number of milliseconds between updates
+        System.out.printf("Time between updates: %d milliseconds%n", period);
+        
+        // start the system clock!
+        long startTime = System.nanoTime();
+        
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
@@ -86,6 +170,7 @@ public class Clock extends javax.swing.JFrame
             java.util.logging.Logger.getLogger(Clock.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
+        //</editor-fold>
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
@@ -95,7 +180,18 @@ public class Clock extends javax.swing.JFrame
             }
         });
     }
+    
+    public void setTimeSpent(long t) {
+        
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JLabel angleSweptLabel;
+    private javax.swing.JTextField angleSweptTextField;
+    private javax.swing.JTextField angularVelocityTextField;
+    private javax.swing.JPanel face;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel timeSpentLabel;
+    private javax.swing.JTextField timeSpentTextField;
     // End of variables declaration//GEN-END:variables
 }

@@ -8,31 +8,25 @@ package clock;
 import GamePanel.GamePanel;
 
 /**
- * The <b>ClockPanel</b> class draws a clock's
- * "face."
+ * The <b>ClockPanel</b> class draws a clock's "face."
  */
 public class ClockPanel extends GamePanel {
     public ClockPanel(){
-        // call the two-argument constructor
-        // (the parameters are a reference to this and the time period)
+        // call the two-argument constructor (the parameters are a reference to this and the time period)
         this(null, 0L);
     }
     
-    public ClockPanel(Clock face, long periodBetweenFrames) {
+    public ClockPanel(Clock face, long period) {
+        this.period = period;
     }
 
     @Override
-    public void customizeGameUpdate() {
-        
-        // Let the player know that an update is
-        // being run.
+    public void customizeGameUpdate() {       
+        // let the player know that an update is being run
         System.out.println("Update...");
     }
     
     @Override
     public void customizeGameRender() {
-    
     }
-    
-    
 }
