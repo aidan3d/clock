@@ -181,6 +181,7 @@ public class Case extends javax.swing.JFrame {
         System.out.print("Ball radius (pixels): ");
         ballRadius = input.nextInt();
         
+        // send over a Point2D object instead of two ints to limit arguments
         ballCenter = new Point2D(x, y);
 
         // look in the "pot" to see if we've been fed a value for the frames-per-second

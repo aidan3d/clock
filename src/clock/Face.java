@@ -7,28 +7,32 @@ package clock;
 
 import GamePanel.GamePanel;
 import java.awt.Color;
+import math.geom2d.Angle2D;
 import math.geom2d.Point2D;
 
 /**
- * The <b>Face</b> class draws a clock's "face."
+ * The <b>Face</b> class draws a clock's "face,"
+ * a "seconds" hand and a ball.
  */
 public class Face extends GamePanel {
+    //<editor-fold defaultstate="collapsed" desc="Fields">
     // global constants
-    private final int X_CENTER = 0;        // the x-component of the clock hands' center of rotation
-    private final int Y_CENTER = 600;      // the y-component of the clock hand's center of rotation
-    private final int CLOCK_RADIUS = 500;  // the radius of the "clock" face
+    private final int X_CENTER = 400;      // the x-component of the clock hand's center of rotation
+    private final int Y_CENTER = 300;      // the y-component of the clock hand's center of rotation
+    private final int CLOCK_RADIUS = 250;  // the radius of the "clock" face
     
     // fields
-    private int ballRadius;
+    private int ballRadius;             // the ball's radius
     
-    private double d;                   // the distance between the clock's center and the center
-                                        // of the ball
+    private double d;                   // the distance between the clock's center and the
+                                        // ball's center
     
     private double thet0;               // the "seconds" hand's start angle in "radians driven"
-    private double thetf;               // the angle at which to stop "ticking" (in radians)
     private double theta;               // the current "angle covered" by the "seconds" hand
-    private double alpha;               // the angle between P->Q (center to ball's center) and
-                                        // the beginning of our simulation (north = 0 radians)
+    private double thetf;               // the angle at which to stop "ticking" (in radians)
+    private double alpha;               // the angle between P->Q (center to ball's center)
+                                        // and the beginning of our simulation
+                                        // (north = 0 radians)
     
     private final double omega;         // the angular velocity of the END of the "seconds" hand
                                         // omega = delta theta / delta time
@@ -43,7 +47,10 @@ public class Face extends GamePanel {
     
     private Case caseTop;               // a reference to the calling object
                                         // (itself derived from a JFrame object)
+    //</editor-fold>
+
     
+    //<editor-fold defaultstate="collapsed" desc="Constructors">
     public Face(){
         // call the two-argument constructor (the parameters are a reference to this
         // and the time period)
@@ -54,15 +61,14 @@ public class Face extends GamePanel {
         this.period = period;
         
         
-        thet0 = a*Math.PI/180 - Math.PI/2;  // have angle from user with respect
-                                            // to "12-noon" as the zero angle, so
-                                            // subtract his or her angle from 90 degrees
+        thet0 = a * Angle2D.M_PI/180;
         
-        thetf = 0.0F;
+        thetf = Angle2D.M_2PI;
         
         theta = 0.0F;  // start with the "seconds" hand at "zero"
+                       // think of theta as "accumulated" radians travelled
         
-        omega = w * Math.PI/180;  // negative velocity rolls clockwise
+        omega = w * Angle2D.M_PI/180; // convert from w in degrees to omega as radians
         
 
         // set up the clock's center of rotation
@@ -79,50 +85,72 @@ public class Face extends GamePanel {
         // the distance traveled between the clock's center and the ball's center
         d = Point2D.distance(P, Q);
 
-        // compute alpha (the true angle of the line PQ in our system, in radians)
-        alpha = Math.asin(Q.x()/d)-Math.PI/2;
+        // compute alpha (the angle of the line PQ, in radians)
+        alpha = Math.acos((Q.x()-P.x())/d);
         
         // let's hold on to a copy of the Case object received as a parameter
         caseTop = face;
     }
+    //</editor-fold>
 
 
+    //<editor-fold defaultstate="collapsed" desc="Operations">
+    /**
+     * This method computes the estimated time of impact
+     * between the traveling "seconds" hand and the
+     * stationary ball.
+     * @return either a message indicating a miss,
+     * or the number of seconds 'til impact 
+     */
     private String angularCollisionLineCircle() {
-    
-        if (d > CLOCK_RADIUS+ballRadius)
+        if (d > CLOCK_RADIUS+ballRadius) // the ball is outside our clock face
             return "no collision";
         
-        if (d < ballRadius)
+        
+        if (d < ballRadius)  // the ball is too big
             return "embedded";
         
-        if (alpha > omega)
-            return "no collision";
+        if (theta > alpha-thet0)   // we have managed to miss the ball by thet0 being too large (n.b.:
+            return "no collision"; // the Kodicek/Flynt book diminishes alpha, we'll just take a bite)
         
         if (d*d < CLOCK_RADIUS*CLOCK_RADIUS + ballRadius*ballRadius) {
             double ballAngularDistance = Math.asin(ballRadius/d);
-            return Double.toString(alpha-ballAngularDistance);  // normal hit
+            
+            return Double.toString((1/omega) * ((alpha-thet0)-ballAngularDistance));  // normal hit
         } else {
             double ballAngularDistance = Math.acos((CLOCK_RADIUS*CLOCK_RADIUS + d*d- ballRadius*ballRadius)/(2*CLOCK_RADIUS*d));
-            return Double.toString(alpha-ballAngularDistance);  // eccentric hit
+            return Double.toString((1/omega) * ((alpha-thet0)-ballAngularDistance));  // eccentric hit
         }
     }
 
-
+    /**
+     * This method is run every time the game loop is run.
+     * We'll use it to move things around.
+     */
     @Override
     public void customizeGameUpdate() {       
-        // let the player know that an update is being run
-        System.out.printf("t = %d, alpha = %.3f, theta = %.3f, ", super.getTimeSpentInGame(), alpha, theta);
+        // limit the clock to one rotation (3 o'clock to 3 o'clock postions)
+        if (theta < thetf) {
+            // let the player know that an update is being run
+            System.out.printf("t = %d, omega = %.3f, alpha = %.3f, theta = %.3f, ", super.getTimeSpentInGame(),
+                    omega, alpha, theta);
 
-        // w = theta / t   => theta = w*t
-        theta = thet0 + omega * super.getTimeSpentInGame();
+            // w = theta / t   => theta = w*t
+            theta = thet0 + omega * super.getTimeSpentInGame();
 
-        // rotate the rod a few radians... (w = theta / t)
-        R = new Point2D(X_CENTER+CLOCK_RADIUS*Math.cos(theta), Y_CENTER+CLOCK_RADIUS*Math.sin(theta));
-        
-        // count down to a "hit"
-        System.out.printf("%s%n", angularCollisionLineCircle());
+            // rotate the rod a few radians... (w = theta / t)
+            R = new Point2D(X_CENTER+CLOCK_RADIUS*Math.cos(theta), Y_CENTER+CLOCK_RADIUS*Math.sin(theta));
+
+            // count down to a "hit"
+            System.out.printf("%s%n", angularCollisionLineCircle());
+        }
     }
 
+    /**
+     * This method is also run every time the game loop
+     * can run it, (i.e. if we're not too far behind on
+     * updates). We'll paint things here.
+     */
     @Override
     public void customizeGameRender() { 
         // run this method at the "top" of each update/render/sleep game loop
@@ -149,4 +177,5 @@ public class Face extends GamePanel {
                 dbg.drawLine((int)P.x(), (int)P.y(), (int)Q.x(), (int)Q.y());
         }
     }
+    //</editor-fold>
 }
