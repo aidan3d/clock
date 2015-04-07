@@ -44,7 +44,7 @@
         </Property>
       </Properties>
       <AuxValues>
-        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new clock.Face(this, period*1000000L)"/>
+        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new clock.Face(this, period*1000000L, angularVelocityDegrees, startAngleDegrees, ballCenter, ballRadius)"/>
       </AuxValues>
 
       <Layout>

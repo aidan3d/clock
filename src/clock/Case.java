@@ -5,6 +5,9 @@
  */
 package clock;
 
+import java.util.Scanner;
+import math.geom2d.Point2D;
+
 /**
  * The Case application <b>JFrame</b>-derived class is the
  * container for the (<b>JPanel</b>-derived)<b>Face</b>
@@ -22,7 +25,21 @@ public class Case extends javax.swing.JFrame {
 
     // the maximum time between frame renders, sleep fills in the gap on very fast buffer flips
     private static long period;
+    
+    // the angular velocity of the "seconds" hand (only static variables can be referenced inside
+    // the main() method
+    private static double angularVelocityDegrees;
 
+    // the starting angle with respect to "north" or the "12-noon" position of the "seconds" hand,
+    // in units of degrees.
+    private static double startAngleDegrees;
+
+    // the radius of the ball the "seconds" hand will try to collide with.
+    private static int ballRadius;
+    
+    // the center of the ball the "seconds" hand will try to collide with (if the ball
+    // happens to be within the top-right quadrant of the "clock face," we'll know!)
+    private static Point2D ballCenter;
 
     /**
      * Creates new form Clock.
@@ -94,7 +111,7 @@ public class Case extends javax.swing.JFrame {
     private void initComponents()
     {
 
-        face = new clock.Face(this, period*1000000L);
+        face = new clock.Face(this, period*1000000L, angularVelocityDegrees, startAngleDegrees, ballCenter, ballRadius);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Clock");
@@ -135,6 +152,36 @@ public class Case extends javax.swing.JFrame {
         // Hold the global (class) variable's value in fps so that we can change it if the player
         // has run <i>Case</i> from the comand line with parameters
         int fps = DEFAULT_FPS;
+        
+        int x;  // The ball center's x-ordinate
+        int y;  // The ball center's y-ordinate
+        
+        angularVelocityDegrees = 0.0F;
+        startAngleDegrees = 0.0F;
+        
+        Scanner input = new Scanner(System.in);
+        
+        // get the "seconds" hand's angular velocity, the initial angle (in degrees) of
+        // the "seconds" hand, and the position in the game window of a possibly-colliding
+        // ball.
+        System.out.print("Angular velocity (degrees per second): ");
+        angularVelocityDegrees = input.nextDouble(); // read first number from user
+        
+        // ask the user for the initial angle (in degrees) from "clock north" or "clock noon"
+        // of the "seconds" hand
+        System.out.print("Initial angle of the \"seconds\" hand (degrees): ");
+        startAngleDegrees = input.nextDouble();
+        
+        System.out.print("Ball position x: ");
+        x = input.nextInt();
+        
+        System.out.print("Ball position y: ");
+        y = input.nextInt();
+        
+        System.out.print("Ball radius (pixels): ");
+        ballRadius = input.nextInt();
+        
+        ballCenter = new Point2D(x, y);
 
         // look in the "pot" to see if we've been fed a value for the frames-per-second
         if (args.length != 0) {
